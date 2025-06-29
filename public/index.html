@@ -1,53 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
-    />
-    <!-- <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" /> -->
-    <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon-32x32.png" sizes="32x32"/>
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link
-      rel="search"
-      href="%PUBLIC_URL%/search.xml"
-      title="Pi Blockexplorer"
-      type="application/opensearchdescription+xml"
-    />
-    <title>Pi Blockexplorer</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ideal Life on Pi Network</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    #user-section, #payment-section {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 10px 0;
+      background-color: #5f27cd;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
 
-    <style type="text/css">
-      body {
-        background-color: #3c4452 !important;
+  <h2>Welcome to Ideal Life on Pi Network</h2>
+  <p>Live the life you've always dreamed of—powered by Pi.</p>
+
+  <div id="auth-section">
+    <button onclick="loginWithPi()">Login with Pi</button>
+  </div>
+
+  <div id="user-section" style="display:none;">
+    <p><strong>User:</strong> <span id="username"></span></p>
+  </div>
+
+  <div id="payment-section" style="display:none;">
+    <button onclick="makePayment()">Buy Starter Pack (1 Pi)</button>
+  </div>
+
+  <script>
+    async function loginWithPi() {
+      try {
+        const scopes = ['username', 'payments'];
+        const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        document.getElementById("username").textContent = authResult.user.username;
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("user-section").style.display = "block";
+        document.getElementById("payment-section").style.display = "block";
+        console.log("Authenticated", authResult);
+      } catch (err) {
+        console.error("Authentication failed:", err);
       }
+    }
 
-      #loading-indicator {
-        width: 100%;
-        height: 100%;
-        color: #07a2cc;
-        font-size: 1.6em;
-        text-align: center;
-        margin-top: 20%;
+    function onIncompletePaymentFound(payment) {
+      console.log("Incomplete payment found:", payment);
+      // Here, you could complete or cancel the payment.
+    }
+
+    async function makePayment() {
+      try {
+        const payment = await Pi.createPayment({
+          amount: 1,
+          memo: "Starter Pack Purchase",
+          metadata: { type: "starter_pack" }
+        }, {
+          onReadyForServerApproval: function(paymentId) {
+            console.log("Send paymentId to server for approval:", paymentId);
+          },
+          onReadyForServerCompletion: function(paymentId, txid) {
+            console.log("Transaction ID:", txid);
+            alert("Payment completed! Welcome to Ideal Life.");
+          },
+          onCancel: function(paymentId) {
+            console.log("Payment cancelled:", paymentId);
+          },
+          onError: function(error, payment) {
+            console.error("Payment error:", error);
+          }
+        });
+      } catch (err) {
+        console.error("Payment failed:", err);
       }
-    </style>
-  </head>
+    }
+  </script>
 
-  <body>
-    <div id="root"><div id="loading-indicator"></div></div>
-    <script type="text/javascript">
-      var count = 0
-      const loadingIndicator = setInterval(() => {
-        const indicator = document.getElementById("loading-indicator")
-        if (!indicator) {
-          clearInterval(loadingIndicator)
-          return
-        }
-        count++
-        indicator.innerHTML = new Array(count % 10).join(".")
-      }, 100)
-    </script>
-    <script async src="https://media.ethicalads.io/media/client/ethicalads.min.js"></script>
-    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fb352560547d4b2192cb3dbf4d174a08"}'></script><!-- End Cloudflare Web Analytics -->
-  </body>
+</body>
 </html>

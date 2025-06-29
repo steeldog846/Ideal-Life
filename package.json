@@ -19,7 +19,7 @@
     "blockchain"
   ],
   "engines": {
-    "node": 22.x
+    "node": "22.x"
   },
   "dependencies": {
     "fetch-ponyfill": "^4.1.0",
